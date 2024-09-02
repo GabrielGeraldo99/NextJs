@@ -1,0 +1,523 @@
+NEXTJS
+
+Possui vários diferenciais:
+
+Components: 
+   - Link
+      -Helps you manage navigation through pages
+
+   - Head
+      -Lets you edit the head of your page, like meta tags or the title
+
+   - Image
+      -Helps on sizing and on letting a pre-selected space for the image before it loads
+
+   - And more
+
+
+Routes:
+   - Each folder you create inside /pages will become a route
+   - So if you want a route for cars:
+      - Page for all cars
+      - Page for each individual card
+
+   1 - You create a folder cars inside pages
+   2 - You create a index.jsx for the all cars page
+   3 - You create a [id].jsx for each car
+
+   - If you create a file with the name inside [], it is a param
+   - So then you can call this and then get the id with router and useRouter()
+
+
+Loading:
+   - SSR (Server-Side-Rendering)
+      - Good but sometimes a bit slow
+
+   - SSG (Static Site Generation)
+      - Makes completely static pages, which can't be changed
+      - But there will be no javascript for the client side (Safer)
+
+   - ISR (Incremental Static Regeneration)
+      - Takes the best of both worlds
+      - Secure
+      - Kinda fast
+      - Better indexation (better SEO ranking)
+
+------------------------------------------------------------------------------
+
+_APP
+
+In the _app.js page you can pass something to all the components if you want
+Like global styles for example
+
+That's where the theme provider from styled-components would go
+And the context also
+
+
+API
+
+We can define the name of the API call in the file name
+So if we called localhost:3000/api/hello
+It would return the json from a database, that we could consume from a component
+
+
+HEAD
+
+import Head from 'next/head'
+E aí podemos mudar o title e a descrição de cada página por exemplo
+Além de até mudar o ícone se quisermos
+
+
+DEPLOY
+
+Fazemos o deploy por meio da Vercell
+O next é deles, então é bem otimizado fazer por lá
+
+
+
+
+
+
+RENDERIZAÇÃO DO LADO DO CLIENTE
+
+Isso acontece quando chamamos um fetch, setamos no state dentro de um useEffect e exibimos na tela
+Acabamos de realizar uma renderização do lado do cliente
+
+~~
+Aliás, para chamar a api que temos dentro de pages, é só usar o path relativo '/api/[nome da chamada]'
+E aí é aquela mesma coisa de dar await no fetch, dar await na conversão pra json e devolver
+~~
+
+Mas o problema disso é que não é nada bom para o SEO da página, pois os campos dinâmicos do HTML
+vão estar vazios para os bots que analisam, pois o conteúdo é diretamente inserido pelo javascript, então os bots não veem
+
+
+
+SERVER SIDE RENDERING
+
+Podemos especificar isso com a função getServerSideProps
+
+´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´
+export const getServerSideProps: GetServerSideProps = async () => {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_APIURL}/api/hello`);
+  const serverSideData: ApiResponse = await response.json();
+
+  return {
+    props: {
+      serverSideData,
+    },
+  };
+};
+
+´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´
+
+E aí a diferença é que não é o caminho relativo, mas sim o absoluto que teremos que realizar o fetch
+E para fazer isso, passamos uma variável de ambiente, que servirá como caminho para colocar anteriormente
+
+No ambiente de desenvolvimento (no notebook/pc), criaremos um arquivo .env.development.local
+Dentro dele, passaremos as variáveis de ambiente que quisermos
+No noso caso, terá um prefixo NEXT_PUBLIC_
+
+Já que a nossa variável é o caminho para a api, teremos NEXT_PUBLIC_APIURL
+e o valor dela é o caminho do site (no caso: http://localhost:3000)
+
+Já no vercel, teremos que passar uma variável de ambiente pelo site mesmo e dar um redeploy
+mas a diferença é que lá o valor será o próprio endereço padrão do site
+
+Além disso, retornamos daquela forma ali, um objeto contendo uma propriedade props e dentro dela nossos dados
+E aí tem que configurar as props do component:
+
+´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´
+const Dynamic: NextPage = (props: {
+  children?: ReactNode;
+  serverSideData?: ApiResponse;
+}) => {
+
+   // component...
+
+}
+
+´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´
+
+
+
+STATIC SITE GENERATION
+
+Teremos que utilizar uma função parecida com a do GetServerSideProps, mas no caso, pra props estáticos
+
+´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´
+export const getStaticProps: GetStaticProps = async () => {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_APIURL}/api/hello`);
+  const staticData: ApiResponse = await response.json();
+
+  return {
+    props: {
+      staticData,
+    },
+  };
+};
+
+´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´
+
+E aí só tem que alterar os parâmetros do component e tá pronto
+
+´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´
+const Static: NextPage = (props: {
+  children?: ReactNode;
+  staticData?: ApiResponse;
+}) => {
+
+   // component...
+
+}
+
+´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´
+
+Aí o comportamento que vamos perceber é que vai ficar algo totalmente estático
+Vemos isso por meio do elemento de data que estamos carregando
+Ele vai aparecer a data que estava quando ocorreu o build e não muda
+
+Agora, se quisermos uma atualização constante mas mantendo o formato de páginas estáticas
+precisaremos do ISR (Incremental Static Regeneration)
+
+
+
+INCREMENTAL STATIC REGENERATION
+
+Só teremos que adicionar uma prorpiedade para o return da nossa getStaticProps, o revalidate
+
+´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´
+export const getStaticProps: GetStaticProps = async () => {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_APIURL}/api/hello`);
+  const staticData: ApiResponse = await response.json();
+
+  return {
+    props: {
+      staticData,
+    },
+    revalidate: 10,
+  };
+};
+
+´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´
+
+Então determinamos o valor 10, que nesse caso vai ser 10 segundos
+Então a cada 10 segundos nossa página estática vai ser gerada novamente, atualizando esse dado da data
+
+
+
+
+
+CRIANDO APIs NO NEXTJS
+
+Então teremos um database.json no nosso projeto apenas para simular um banco de dados
+Esse database tem os dados dos nossos produtos
+
+Vemos que ele trabalha bem parecido com o express. Só precisaremos tipar a req e a res e aí podemos trabalhar
+
+Então criaremos uma pasta 'products' dentro de 'api'
+E dentro delá terá um index.ts e um [id].ts
+Na index será nossa chamada para /api/products/
+E terá o seguinte conteúdo:
+
+´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´	
+import { NextApiRequest, NextApiResponse } from "next";
+import products from "../../../database.json";
+
+export default function handler(req: NextApiRequest, res: NextApiResponse) {
+  res.status(200).json(products);
+}
+
+´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´
+
+E no [id].ts teremos:
+
+´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´
+import { NextApiRequest, NextApiResponse } from "next";
+import products from "../../../database.json";
+
+export default function handler(req: NextApiRequest, res: NextApiResponse) {
+  const { id } = req.query;
+
+  const product = products.find((product) => product.id === Number(id));
+  res.status(200).json(product);
+}
+
+
+´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´
+
+O importante aqui é lembrar que o req.query irá pegar a variável que nomeamos dentro dos []
+já que é id, teremos: const { id } = req.query
+se fosse productId, teriámos: const { productId } = req.query
+
+E aí depois teremos javascript normal para processar os dados
+
+~~
+Só lembrando que o ideal seria ter um try catch pra poder processar um possível erro de requisição
+~~
+
+
+
+
+Na aula OBTENDO OS PRODUTOS DA API nós fizemos basicamente uma organização do frontend
+Acho que o que podemos notar de interessante é:
+
+  - O uso do successToast com timeout e state pra gerenciar
+  - Criação da pasta services no src, que é onde ficam as chamadas de API e o type dos produtos
+
+E que caso fossemos utilizar alguma imagem pelo Image do next, temos que adicionar o nome do domínio no next.config.js
+
+
+
+
+Na aula CRIANDO UMA LOJA COM ROTAS DINÂMICAS nós fizemos a configuração da página individual de cada produto
+
+Primeiramente fizemos a chamada para obter o produto:
+
+´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´	
+export const getStaticProps: GetStaticProps = async (context) => {
+  const id = context.params?.id;
+
+  if (typeof id === "string") {
+    const product = await fetchProduct(id);
+
+    return {
+      props: {
+        product,
+      },
+    };
+  }
+
+  return {
+    redirect: {
+      destination: "/products",
+      permanent: false,
+    },
+  };
+};
+
+´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´
+
+Fizemos essa verificação para ver se o produto realmente existia
+Então para pegar o id que vem da rota, nós pegamos o parâmetro context na função
+E aí pra pegar é só usar o context.params?.id
+E aí é só fazer a chamada individual do produto
+
+No caso de não haver aquele produto, nós temos um return que redireciona para algum lugar
+É uma boa ideia, já que aquele produto não existe
+
+
+Agora nós fizemos algo bem importante
+Passamos uma função que irá prever todas as rotas possíveis para aqueles produtos
+
+´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´
+export const getStaticPaths: GetStaticPaths = async () => {
+  const products = await fetchProducts();
+
+  const paths = products.map((product) => {
+    return {
+      params: {
+        id: product.id.toString(),
+      },
+    };
+  });
+
+  return {
+    paths: paths,
+    fallback: false,
+  };
+};
+
+´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´
+
+Pegamos todos os produtos (pois é lá que haverá cada produto para iterar)
+E aí mapeamos criando um objeto do formato que o GetStaticPaths quer
+
+Esse objeto tem o params, que incluirá o id (que no caso é o parâmetro o qual estamos falando)
+No return teremos os paths e o fallback, que é se queremos ou não que o next faça algo caso algum produto não exista
+Passando false ele vai apenas retornar uma página 404
+
+
+
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+ADICIONANDO UM CARRINHO (APRENDIZADO SOBRE CONTEXT)
+
+Primeiramente precisamos de um contexto
+Usaremos o hook useContext do react
+Isso é muito útil
+
+Primeiramente criamos uma pasta hooks dentro de components
+Dentro dela teremos o useCart.tsx
+
+agora teremos o grosso do context:
+
+´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´
+const CartContext = createContext<CartContextType>({} as CartContextType);
+
+export const CartContextProvider = (props: { children?: ReactNode }) => {
+  const [cart, setCart] = useState<ProductType[]>([]);
+
+  useEffect(() => {
+    const storedCart = localStorage.getItem("shopping-cart");
+
+    if (storedCart) {
+      setCart(JSON.parse(storedCart));
+    }
+  }, []);
+
+  const addProduct = (product: ProductType) => {
+    const updatedCart = [...cart, product];
+    localStorage.setItem("shopping-cart", JSON.stringify(updatedCart));
+    setCart(updatedCart);
+  };
+
+  const removeProduct = (productId: number) => {
+    const productIndex = cart.findIndex((product) => product.id === productId);
+
+    if (productIndex !== -1) {
+      const updatedCart = [...cart];
+      updatedCart.splice(productIndex, 1);
+      localStorage.setItem("shopping-cart", JSON.stringify(updatedCart));
+      setCart(updatedCart);
+    }
+  };
+
+  return (
+    <CartContext.Provider value={{ cart, addProduct, removeProduct }}>
+      {props.children}
+    </CartContext.Provider>
+  );
+};
+
+export const useCart = () => useContext(CartContext);
+
+´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´
+
+Primeiramente criamos um card context que vai ser utilizado aqui no export para facilitar as coisas
+Aí teremos o CartContextProvider
+
+Isso funciona da seguinte maneira:
+
+Aqui nós tinhamos um useEffect e algumas funções, mas aqui poderia servir 
+para guardar os states que vão ser usados ao longo da aplicação
+
+agora o mais importante
+Retornaremos um elemento wrapper
+
+Terá essa estrutura mesmo, será o <CartContext.Provider></CartContext.Provider>
+O value incluirá o que poderemos usar ao longo da aplicação
+e dentro dele teremos o props.children, pois ele vai englobar toda a aplicação
+
+Teremos que dar um wrap lá no nosso root, que no caso é o _app
+
+´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´
+import "bootstrap/dist/css/bootstrap.min.css";
+import type { AppProps } from "next/app";
+import { CartContextProvider } from "../src/components/hooks/useCart";
+
+export default function App({ Component, pageProps }: AppProps) {
+  return (
+    <CartContextProvider>
+      <Component {...pageProps} />;
+    </CartContextProvider>
+  );
+}
+
+´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´
+
+E para usar é só ir dentro de um component e usar:
+const {propriedades, que, deseja, usar} = useCart()
+
+Fizemos isso no botão do productCard e no productDetails
+
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+
+~~~~~~~
+Coisas específicas desse projeto (EM RELAÇÃO AO CONTEXT)
+
+No nosso caso, teremos um useEffect de renderização:
+  Caso os dados já existam no localstorage, ele vai transformar em objeto e colocar no cart
+
+
+addProduct:
+  criaremos uma cópia do array, mas com o novo getItem
+  usaremos o localStorage.setItem("shopping-cart", JSON.stringify(updatedCart));
+    isso pois caso ainda não haja um 'shopping-cart', ele vai criaremos
+  
+  e também temos que salvar no cart para usar naquela sessão ali
+
+
+removeProduct:
+  vai procurar o index do produto para excluir
+  Se o index for -1 (que é o que retorna quando esse produto não existe), ele não faz nada
+  Agora, se for diferente de -1,
+    criaremos uma cópia, removeremos com splice e aí salvaremos no localStorage e no cart
+~~~~~~~
+
+Aí agora teremos a parte de montar a tela
+A parte interessante a se notar aqui é a maneira de iterar sobre os produtos para montar a tabela do cart
+
+Primeiramente criamos um tipo para poder não só registrar o produto, mas também a quantidade:
+´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´
+type CartEntry = {
+  product: ProductType;
+  quantity: number;
+};
+
+´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´
+
+E aí terá um component que é o tableRow
+E depois teremos a tabela total, que dentro dela teremos isso:
+
+´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´
+const [cartEntries, setCartEntries] = useState<CartEntry[]>([]);
+  const { cart } = useCart();
+
+  useEffect(() => {
+    const entriesList = cart.reduce((list, product) => {
+      const entryIndex = list.findIndex(
+        (entry) => entry.product.id === product.id
+      );
+
+      if (entryIndex === -1) {
+        return [
+          ...list,
+          {
+            product,
+            quantity: 1,
+          },
+        ];
+      }
+
+      list[entryIndex].quantity++;
+      return list;
+    }, [] as CartEntry[]);
+
+    entriesList.sort((a, b) => a.product.id - b.product.id);
+    setCartEntries(entriesList);
+  }, [cart]);
+
+´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´´
+
+The useEffect has dependency on the cart, so everytime it updates, it updates the component
+
+We are going to reduce to get the products to the way we want and to get quantities instead of one card per unity
+So we reduce: the acumulator is the list, and its initial value is [] as CartEntry[]
+
+We get the index
+If the index === -1 (it is not on the list yet),
+it returns (adds to the list) the actual list + the product on the CartEntry format
+
+And then independently if it added to the list or not,
+that product (list[entryIndex]) is going to have its quantity++
+and then we return the list because that's how reduce works
+
+
+
+E aí a ultima coisa a se notar é usar o .toLocaleString('pt-BR', { style: "currency", currency: "BRL" })
+Isso para deixar os preços mais legíveis
+E AÍ NÃO PRECISA FICAR COLOCANDO R$ ANTES
